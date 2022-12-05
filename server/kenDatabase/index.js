@@ -21,8 +21,10 @@ const root = 'http://app-hrsei-api.herokuapp.com/api/fec2/hr-rpp'
 
 /* ---- QA ---- */
 
+// get questions
 app.get('/qa/questions/:product_id', (req, res) => {
-  db.query(`SELECT * from Question where productId=641753;`)
+  let url = `${root}/qa/questions/?product_id=${req.params.product_id}&count=50`;
+  db.query(`SELECT * from Question where productId=${req.params.product_id};`)
   .then((data) => {
     //console.log('DATA:', data)
     //console.log(`${req.params.product_id}`)
@@ -48,6 +50,13 @@ app.get('/qa/questions/:product_id', (req, res) => {
       resultData.reported = data.reported;
       resultData.answers = {};
     })
+    db.query(`SELECT * from Question where productId=${req.params.product_id};`)
+  .then((data) => {
+  })
+  .catch((error) => {
+    console.log('ERROR:', error)
+    res.status(404).send(error)
+  })
     let resultAnswers = {
       id: null,
       body: null,
@@ -56,7 +65,6 @@ app.get('/qa/questions/:product_id', (req, res) => {
       helpfulness: null,
       photos:[]
     }
-    let resultPhotos = [];
 
   })
   .catch((error) => {
@@ -65,7 +73,7 @@ app.get('/qa/questions/:product_id', (req, res) => {
   })
   axios.get(url, headers)
   .then((response) => {
-    console.log(response.data.results[0]['answers']['5989327'], 'test')
+    console.log(response.data.results[0]['answers'], 'test')
     res.status(200).json(response.data)
   })
   .catch((err) => console.error(err))
