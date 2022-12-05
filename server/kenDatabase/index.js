@@ -5,6 +5,8 @@ const express = require('express');
 const compression = require('compression');
 const Promise = require("bluebird");
 const cloudinary = require("cloudinary").v2;
+const pgp = require('pg-promise')();
+const db = pgp('postgres://kenkurita:@localhost:5432/questionanswer')
 
 const app = express();
 app.use(compression());
@@ -70,12 +72,12 @@ app.get('/qa/questions/:product_id', (req, res) => {
 })
 
 // get questions
-app.get('/qa/questions/:product_id', (req, res) => {
-  let url = `${root}/qa/questions/?product_id=${req.params.product_id}&count=50`;
-  axios.get(url, headers)
-  .then((response) => res.status(200).json(response.data))
-  .catch((err) => console.error(err))
-})
+// app.get('/qa/questions/:product_id', (req, res) => {
+//   let url = `${root}/qa/questions/?product_id=${req.params.product_id}&count=50`;
+//   axios.get(url, headers)
+//   .then((response) => res.status(200).json(response.data))
+//   .catch((err) => console.error(err))
+// })
 
 // get answers
 app.get('/qa/questions/:question_id/answers', (req, res) => {
