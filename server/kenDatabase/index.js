@@ -17,7 +17,10 @@ app.use(express.urlencoded({extended: true, limit: '50mb'}));
 app.use(express.static(path.join(__dirname, '../../client/dist')));
 
 const headers = {headers: {authorization: process.env.TOKEN}};
-const root = 'http://app-hrsei-api.herokuapp.com/api/fec2/hr-rpp'
+//const root = 'http://app-hrsei-api.herokuapp.com/api/fec2/hr-rpp'
+
+const root = 'localhost:3001'
+var outsideObj = {};
 
 /* ---- QA ---- */
 
@@ -32,6 +35,7 @@ app.get('/qa/questions/:product_id', (req, res) => {
       product_id: `${req.params.product_id}`,
       results: []
     }
+
     let resultData = {
       question_id: null,
       question_body: null,
@@ -41,42 +45,68 @@ app.get('/qa/questions/:product_id', (req, res) => {
       reported: null,
       answers: null
     };
-    data.forEach((item) => {
-      resultData.question_id = data.idquestion;
-      resultData.question_body = data.body;
-      resultData.question_date = data.date;
-      resultData.asker_name = data.askername;
-      resultData.question_helpfulness = data.helpfulness;
-      resultData.reported = data.reported;
-      resultData.answers = {};
+
+  resultData.question_id = data[0].idquestion;
+  resultData.question_body = data[0].body;
+  resultData.question_date = data[0].date;
+  resultData.asker_name = data[0].askername;
+  resultData.question_helpfulness = data[0].helpfulness;
+  resultData.reported = data[0].reported;
+  resultData.answers = {};
+  newData.results.push(resultData);
+
+  let resultAnswers = {
+    id: null,
+    body: null,
+    date: null,
+    answerer_name: null,
+    answerer_email: null,
+    helpfulness: null,
+    photos:[]
+  }
+
+  db.query(`SELECT * from Answers where questionId=${resultData.question_id };`)
+  .then((data1) => {
+    console.log(data1, 'data1')
+    resultAnswers.id = data1[0].idanswer;
+    resultAnswers.body = data1[0].body;
+    resultAnswers.date = data1[0].date;
+    resultAnswers.answerer_name = data1[0].answerername;
+    resultAnswers.answerer_email = data1[0].answereremail;
+    resultAnswers.helpfulness = data1[0].helpfulness;
+    resultData.answers = resultAnswers;
+    db.query(`SELECT * from answerPhotos where answerId=${resultAnswers.id};`)
+    .then((data2) => {
+      console.log(resultAnswers, resultData)
+      console.log(data2, 'data2')
+      resultAnswers.photos = data2
+      outsideObj.newData = newData;
+      outsideObj.resultData = resultData;
+      outsideObj.resultAnswers = resultAnswers;
+      res.status(200).json(outsideObj);
     })
-    db.query(`SELECT * from Question where productId=${req.params.product_id};`)
-  .then((data) => {
+    .catch((error) => {
+      console.log('ERROR:', error)
+      res.status(404).send(error)
+    })
   })
   .catch((error) => {
     console.log('ERROR:', error)
     res.status(404).send(error)
   })
-    let resultAnswers = {
-      id: null,
-      body: null,
-      date: null,
-      answerer_name: null,
-      helpfulness: null,
-      photos:[]
-    }
+
 
   })
   .catch((error) => {
     console.log('ERROR:', error)
     res.status(404).send(error)
   })
-  axios.get(url, headers)
-  .then((response) => {
-    console.log(response.data.results[0]['answers'], 'test')
-    res.status(200).json(response.data)
-  })
-  .catch((err) => console.error(err))
+  // axios.get(url, headers)
+  // .then((response) => {
+  //   console.log(response.data.results[0]['answers'], 'test')
+  //   res.status(200).json(response.data)
+  // })
+  // .catch((err) => console.error(err))
 })
 
 // get questions
@@ -91,7 +121,7 @@ app.get('/qa/questions/:product_id', (req, res) => {
 app.get('/qa/questions/:question_id/answers', (req, res) => {
   let url = `${root}/qa/questions/${req.params.question_id}/answers?count=50`;
   axios.get(url, headers)
-  .then((response) => res.status(200).json(response.data))
+  .then((response) => res.status(200).json(outsideObj))
   .catch((err) => console.error(err))
 })
 
@@ -102,7 +132,7 @@ app.post('/qa/questions', (req, res) => {
   .then((response) => {
     console.log('Success Creating Question');
     console.log('Response', response);
-    res.status(201).json(response.data)
+    res.status(201).json(outsideObj)
   })
   .catch((err) => { console.error(err) })
 })
@@ -153,7 +183,7 @@ app.get('/reviews/meta/:product_id', (req, res) => {
   let url = `${root}/reviews/meta?product_id=${req.params.product_id}`;
   return axios.get(url, headers)
     .then((results) => {
-      res.status(200).json(results.data);
+      res.status(200).json(outsideObj);
     })
     .catch(err => {
       console.log(err);
