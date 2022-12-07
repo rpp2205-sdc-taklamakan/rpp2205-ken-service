@@ -17,10 +17,10 @@ app.use(express.urlencoded({extended: true, limit: '50mb'}));
 app.use(express.static(path.join(__dirname, '../../client/dist')));
 
 const headers = {headers: {authorization: process.env.TOKEN}};
-//const root = 'http://app-hrsei-api.herokuapp.com/api/fec2/hr-rpp'
+const root = 'http://app-hrsei-api.herokuapp.com/api/fec2/hr-rpp'
 
-const root = 'localhost:3001'
-var outsideObj = {};
+//const root = 'localhost:3001'
+
 
 /* ---- QA ---- */
 
@@ -77,7 +77,7 @@ app.get('/qa/questions/:product_id', (req, res) => {
     resultData.answers = resultAnswers;
     db.query(`SELECT * from answerPhotos where answerId=${resultAnswers.id};`)
     .then((data2) => {
-      console.log(resultAnswers, resultData)
+      console.log(resultAnswers, resultData, 'test Filimon' )
       console.log(data2, 'data2')
       resultAnswers.photos = data2
       outsideObj.newData = newData;
